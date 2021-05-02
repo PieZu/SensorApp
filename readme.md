@@ -1,0 +1,2 @@
+A flask app for the storage and retrieval of sensor data.
+Includes apis for the sensor to log data to, and a user-facing website that allows filtering, visualisation and csv extraction of the logged data.  
