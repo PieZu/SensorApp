@@ -1,6 +1,8 @@
 from flask import Flask, render_template
-import database.createDb
+from database.createDb import database_bp
 app = Flask(__name__)
+
+app.register_blueprint(database_bp)
 
 @app.route("/")
 def hello():
