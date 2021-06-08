@@ -1,1 +1,6 @@
 __pycache__/
+
+/config.py
+/user/config.py
+
+database.db
