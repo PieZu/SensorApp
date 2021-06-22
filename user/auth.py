@@ -76,20 +76,6 @@ def login(username, password):
             # unknown username
             raise InvalidLoginCredentials
 
-def insert_new_user(username, passwordHash):
-    # internal function to insert new entries in user table
-    with sqlite3.connect(DATABASE_PATH) as con:
-        cur = con.cursor()
-        cur.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", [username, password_hash])
-        con.commit()
-
-def insert_new_permission(permission_name):
-    with sqlite3.connect(DATABASE_PATH) as con:
-        cur = con.cursor()
-        cur.execute("INSERT INTO permissions (permission_name) VALUES (?)", [permission_name])
-        con.commit()
-    return get_permissionid(permission_name)
-
 def get_userid(username):
     with sqlite3.connect(DATABASE_PATH) as con:
         cur = con.cursor()
@@ -103,44 +89,3 @@ def get_permissionid(permission_name):
         cur.execute("SELECT id FROM permissions WHERE permission_name = ?", [permission_name])
         id = cur.fetchone()
     return id[0]
-
-def link_user_permission(userID, permissionID):
-     with sqlite3.connect(DATABASE_PATH) as con:
-        cur = con.cursor()
-        cur.execute("INSERT INTO user_permissions (user_id, permission_id) VALUES (?, ?)", [userID, permissionID])
-        con.commit()
-
-def delink_user_permission(userID, permissionID):
-    with sqlite3.connect(DATABASE_PATH) as con:
-        cur = con.cursor()
-        cur.execute("DELETE FROM user_permissions WHERE user_id = ? AND permission_id = ?", [userID, permissionID])
-        con.commit()
-
-def user_has_permission(userID, permissionID):
-    with sqlite3.connect(DATABASE_PATH) as con:
-        cur = con.cursor()
-        cur.execute("SELECT * FROM user_permissions WHERE user_id = ? AND permission_id = ?", [userID, permissionID])
-        result = cur.fetchone()
-    if result:
-        return True
-    else: 
-        return False
-
-@authenticate("CREATE_USERS")
-def create_user(username, password):
-    # api interfacable authenticated function for admins to add users
-    insert_new_user(username, sha256_crypt.hash(str(password)))
-
-@authenticate("MANAGE_PERMISSIONS")
-def add_permission(username, permission_name):
-    userID = get_userid(username)
-    permissionID = get_permissionid(permission_name)
-    if not permissionID:
-        permissionID = insert_new_permission(permission_name)
-    link_user_permission(userID, permissionID)
-
-@authenticate("MANAGE_PERMISSIONS")
-def remove_permission(username, permission_name):
-    userID = get_userid(username)
-    permissionID = get_permissionid(permission_name)
-    delink_user_permission(userID, permissionID)

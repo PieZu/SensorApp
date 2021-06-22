@@ -1,13 +1,16 @@
 from flask import Flask, render_template
 from database.createDb import database_bp
 from user.auth import user_bp, authenticate
+from visualisation.chart import visualisation_bp
 import config
+from database.config import DATABASE_PATH
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
 
 app.register_blueprint(database_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(visualisation_bp)
 
 @app.route("/")
 def hello():

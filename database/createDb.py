@@ -41,3 +41,15 @@ def debug(name):
             cur.execute("SELECT * FROM "+name) # this is vulnerable to sql injections but this function is a debug and should be removed anyway
             result = cur.fetchall()
             return render_template('debug_table.html', items=result)
+
+# temporary endpoint to examine table
+@database_bp.route('/query/<string:cmd>')
+def exec(cmd):
+    print(cmd)
+    with sqlite3.connect(DATABASE_PATH) as con:
+            cur = con.cursor()
+            
+            cur.execute(cmd) # this is vulnerable to sql injections but this function is a debug and should be removed anyway
+            result = cur.fetchall()
+            print(result)
+            return render_template('debug_table.html')

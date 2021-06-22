@@ -1,0 +1,52 @@
+<body>
+<div id="myChart" width="400" height="400"></div>
+<script src="https://cdn.plot.ly/plotly-2.1.0.min.js"></script>
+
+<script>
+series = [
+{% for dataset in datasets %}
+    {
+        type: "scatter",
+        mode: "lines",
+        name: '{{labels[loop.index0]}}',
+        x: ["{{ dataset[0] | join('", "') | safe}}"],
+        y: [{{ dataset[1] | join(', ') }}],
+        line: {color: '#7F7F7F'}
+    },
+{% endfor %}
+]
+
+var layout = {
+    title: 'Time Series with Rangeslider',
+    xaxis: {
+        autorange: true,
+        
+    range: ['2021-06-01', '2021-06-22'],
+        rangeselector: {buttons: [
+            {
+                count: 1,
+                label: '1m',
+                step: 'month',
+                stepmode: 'backward'
+            },
+            {
+                count: 6,
+                label: '6m',
+                step: 'month',
+                stepmode: 'backward'
+            },
+            {step: 'all'}
+        ]},
+        rangeslider: {range: ['2015-02-17', '2017-02-16']},
+        type: 'date'
+    },
+    yaxis: {
+        autorange: true,
+        range: [0, 10],
+        type: 'linear'
+    }
+};
+
+Plotly.newPlot('myChart', series, layout)
+</script>
+</body>

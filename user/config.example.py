@@ -1,1 +1,1 @@
-DEFAULT_USER_KEY = b'<replace with your secret password>'
+DEFAULT_USER_KEY = '<replace with your secret password>'
