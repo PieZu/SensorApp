@@ -15,19 +15,20 @@ CREATE TABLE 'log' (
 
 CREATE TABLE 'users' (
 'id' INTEGER DEFAULT NULL PRIMARY KEY AUTOINCREMENT,
-'username' TEXT DEFAULT NULL,
+'username' TEXT DEFAULT NULL UNIQUE,
 'password_hash' TEXT DEFAULT NULL
 );
 
 CREATE TABLE 'user_permissions' (
 'id' INTEGER DEFAULT NULL PRIMARY KEY AUTOINCREMENT,
 'user_id' INTEGER DEFAULT NULL REFERENCES 'users' ('id'),
-'permission_id' INTEGER DEFAULT NULL REFERENCES 'permissions' ('id')
+'permission_id' INTEGER DEFAULT NULL REFERENCES 'permissions' ('id'),
+UNIQUE(user_id,permission_id)
 );
 
 CREATE TABLE 'permissions' (
 'id' INTEGER DEFAULT NULL PRIMARY KEY AUTOINCREMENT,
-'permission_name' INTEGER DEFAULT NULL
+'permission_name' INTEGER DEFAULT NULL UNIQUE
 );
 
 INSERT INTO 'users' ('username') VALUES ('SYSTEM');
