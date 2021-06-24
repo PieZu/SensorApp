@@ -13,7 +13,7 @@ class InvalidLoginCredentials(Exception):
 
 ## decorators ##
 
-def authenticate(permission):
+def authenticate(*permissions, mode='all'):
     # helper factory for restricting pages to users with certain permission
     # (technically a decorator factory, so that we can pass arguments)
     def decorator(func):
@@ -25,17 +25,32 @@ def authenticate(permission):
                 print(f'Guest attempted to access "{func.__name__}"')
                 flash('You must be logged in to access this page')
                 return redirect('/login')
-            permission_id = get_permissionid(permission)
-            print(f"user #{session['userid']} attempting to access {func.__name__} needing {permission} ({permission_id}) perms")
 
-            if user_has_permission(user_id, permission_id):
+            permission_ids = [get_permissionid(permission_name) if type(permission_name)==str else permission_name for permission_name in permissions]
+           
+            print(f"user #{session['userid']} attempting to access {func.__name__} needing {mode} of {permissions} perms")
+            if user_has_permissions(user_id, permission_ids, mode):
                 return func(*args, **kwargs)
             else:
                 flash('You do not have permission to access this page.')
                 return redirect('/login')
-            
+
         return secured
     return decorator
+
+def user_has_permissions(userID, permissionIDs, mode='all'):
+    with sqlite3.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        
+        # prepepare sql statement with variable amount of ?s
+        statement = "SELECT COUNT() FROM user_permissions WHERE user_id = ? AND permission_id IN ("+("?,"*len(permissionIDs))[:-1]+")"
+        cur.execute(statement, [userID]+permissionIDs)
+        result = cur.fetchone()[0]
+        
+        if mode == 'any':
+            return result > 0
+        if mode == 'all':
+            return result == len(permissionIDs)
 
 ## flask pages ##
 user_bp = Blueprint(
