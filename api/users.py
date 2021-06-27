@@ -17,6 +17,13 @@ def get_userid(username):
         id = cur.fetchone()
     return id[0]
 
+def get_all_users():
+    with sqlite3.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        cur.execute("SELECT id, username FROM users")
+        results = cur.fetchall()
+    return results
+
 @authenticate("CREATE_USERS")
 def create_user(username, password):
     # api interfacable authenticated function for admins to add users

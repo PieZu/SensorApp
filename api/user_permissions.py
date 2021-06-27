@@ -41,6 +41,13 @@ def user_has_permissions(userID, permissionIDs, mode='all'):
         else:
             return False
 
+def get_user_permissions(userID):
+    with sqlite3.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        cur.execute("SELECT permission_name FROM user_permissions INNER JOIN permissions ON permissions.id = permission_id WHERE user_id = ?", [userID])
+        result = cur.fetchall()
+    return result
+
 from api.users import get_userid
 @authenticate("MANAGE_PERMISSIONS")
 def add_permission(username, permission_name):

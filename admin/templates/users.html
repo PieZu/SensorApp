@@ -1,0 +1,53 @@
+<style>
+    body {
+        font-family: Helvetica, Calibri, Arial, sans-serif;
+    }
+    .user {
+        background-color: #ddd;
+        padding: 1px 10px 20px 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .deluser { float:right; }
+    .user i { color: #444; }
+
+    .permission_list {
+        border: dashed 2px grey;
+        border-radius: 10px;
+        padding: 10px;
+        margin-top:0px;
+    }
+    .permission {
+        background-color: #bbb;
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    .adduser {
+        background-color: #e8e8e8;
+        padding: 5px 0px;
+        text-align: center;
+    }
+    .adduser:hover { background-color: #ccc; }
+    .adduser:active { background-color: #aaa; }
+</style>
+
+{% for username, permissions in users %}
+<div class="user">
+    <h2>
+        <i>Username:</i>
+        {{username}}
+        <button class="deluser">🗑️</button>
+    </h2>
+    <h3><i>Permissions:</i></h3>
+    <div class="permission_list">
+        {% for permission in permissions %}
+            <span class="permission">{{permission}} <button class="delperm">❌</button></span>
+        {% endfor %}
+            <span class="permission addperm"><input placeholder="Add permission"><button>➕</button></span>
+    </div>
+</div>
+{% endfor %}
+<div class="user adduser">
+    <i><h3>➕ Add new user</h3></i>
+</div>
