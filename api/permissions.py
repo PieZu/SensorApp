@@ -2,6 +2,13 @@ from flask import Blueprint, request, session, render_template, flash, redirect
 from database.config import DATABASE_PATH
 import sqlite3
 
+def get_all_permissions():
+    with sqlite3.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        cur.execute("SELECT permission_name FROM permissions")
+        permissions = cur.fetchall()
+    return [perm[0] for perm in permissions]
+
 def insert_new_permission(permission_name):
     with sqlite3.connect(DATABASE_PATH) as con:
         cur = con.cursor()

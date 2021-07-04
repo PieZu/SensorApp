@@ -72,7 +72,11 @@ def add_permission(username):
     permissionID = get_permissionid(request.json['permission'])
 
     if not permissionID:
-        permissionID = insert_new_permission(request.json['permission'])
+        return Response(json.dumps({
+            "error": "user_perm_creation_DNE",
+            "message": "Unknown permission name",
+            "detail": "Cannot add permission '"+request.json['permission']+"' to user '"+username+"' as such a permission does not exist."
+        }), status=404)
     
     link_user_permission(userID, permissionID)
     return Response(json.dumps(request.json), status=200, mimetype='application/json')
