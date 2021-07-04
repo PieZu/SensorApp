@@ -43,21 +43,35 @@ def delete_user(id):
 api = Blueprint(
     'userapi', __name__,
     template_folder = 'templates',
-    url_prefix = '/api/users'
+    url_prefix = '/api'
 )
 
-@api.route('/createUser', methods=["post"])
+
+@api.route('/users/', methods=["GET"])
+@authenticate("CREATE_USERS", "DELETE_USERS", "MANAGE_PERMISSIONS", mode="any")
+def view_users():
+    # api interfacable authenticated function for admins to add users
+    users = get_all_users()
+    return Response(json.dumps([{'id':row[0], 'username':row[1]} for row in users]), status=200, mimetype='application/json')
+
+@api.route('/users/', methods=["POST"])
 @authenticate("CREATE_USERS")
 def create_user():
     # api interfacable authenticated function for admins to add users
     new_row = insert_new_user(request.json['username'], sha256_crypt.hash(str(request.json['username'])) )
-    inserted = get_user_info(new_row)
+    inserted, perms = get_user_info(new_row)
     return Response(json.dumps({'id':inserted[0], 'username':inserted[1]}), status=200, mimetype='application/json')
 
 
-@api.route('/deleteUser', methods=["post"])
+@api.route('/users/<username>', methods=["GET"])
+@authenticate("CREATE_USERS", "DELETE_USERS", "MANAGE_PERMISSIONS", mode="any")
+def view_user(username):
+    user_id = get_userid(username)
+    return Response(json.dumps({"id":user_id, "username":username}), status=200, mimetype='application/json')
+
+@api.route('/users/<username>', methods=["DELETE"])
 @authenticate("DELETE_USERS")
-def destroy_user():
-    user_id = get_userid(request.json['username'])
+def destroy_user(username):
+    user_id = get_userid(username)
     delete_user(user_id)
-    return Response(json.dumps(request.json), status=200, mimetype='application/json')
+    return Response(status=204)

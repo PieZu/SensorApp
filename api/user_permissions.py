@@ -55,13 +55,20 @@ import json
 api = Blueprint(
     'userpermapi', __name__,
     template_folder = 'templates',
-    url_prefix = '/api/user_permissions'
+    url_prefix = '/api/users/'
 )
 
-@api.route('/addPermission' , methods=["post"])
+@api.route('<username>/permissions' , methods=["GET"])
 @authenticate("MANAGE_PERMISSIONS")
-def add_permission():
-    userID = get_userid(request.json['username'])
+def view_userperms(username):
+    userID = get_userid(username)
+    permissions = get_user_permissions(userID)
+    return Response(json.dumps([perm[0] for perm in permissions]), status=200, mimetype='application/json')
+
+@api.route('<username>/permissions' , methods=["POST"])
+@authenticate("MANAGE_PERMISSIONS")
+def add_permission(username):
+    userID = get_userid(username)
     permissionID = get_permissionid(request.json['permission'])
 
     if not permissionID:
@@ -70,11 +77,20 @@ def add_permission():
     link_user_permission(userID, permissionID)
     return Response(json.dumps(request.json), status=200, mimetype='application/json')
 
-@api.route('/removePermission' , methods=["post"])
+
+@api.route('<username>/permissions/<permission>' , methods=["GET"])
 @authenticate("MANAGE_PERMISSIONS")
-def remove_permission():
-    userID = get_userid(request.json['username'])
-    permissionID = get_permissionid(request.json['permission'])
+def view_userperm(username, permission):
+    userID = get_userid(username)
+    permissionID = get_permissionid(permission)
+
+    return Response(json.dumps({"user":{"username":username,"id":userID},"permission":{"name":permission,"id":permissionID}}), status=200, mimetype='application/json')
+
+@api.route('<username>/permissions/<permission>' , methods=["DELETE"])
+@authenticate("MANAGE_PERMISSIONS")
+def remove_permission(username, permission):
+    userID = get_userid(username)
+    permissionID = get_permissionid(permission)
 
     delink_user_permission(userID, permissionID)
-    return Response(json.dumps(request.json), status=200, mimetype='application/json')
+    return Response(status=204)

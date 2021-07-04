@@ -59,9 +59,9 @@
 </div>
 
 <script>
-    async function post(url, data) {
+    async function post(url, data, method="POST") {
         res = await fetch(url, {
-            method: "POST", 
+            method: method, 
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         });
@@ -80,7 +80,7 @@
         if (username == null) return
         password = prompt("Password of new user:")
         if (password != null){
-            var res = await post("/api/users/createUser", {username, password})
+            var res = await post("/api/users/", {username, password})
             if (res.status == 200) {
                 document.getElementById('userlist').innerHTML += 
                     `<div class="user" id="user_${username}"><h2><i>Username:</i> ${username}<button class="deluser" onclick='removeUser(${JSON.stringify(username)})'>🗑️</button></h2>
@@ -94,9 +94,9 @@
     })
     async function removeUser(username) {
         if (confirm("You are about to delete user '"+username+"', this action is not reversible.\nAre you sure?"))
-        var res = await post("api/users/deleteUser", {username})
-        if (res.status == 200) {
-            document.getElementById("user_"+res.data.username).remove()
+        var res = await post("api/users/"+encodeURIComponent(username), {}, "DELETE")
+        if (res.status == 204) {
+            document.getElementById("user_"+username).remove()
         }
     }
 
@@ -109,7 +109,7 @@
         console.log(username)
         console.log(permission)
 
-        var res = await post("api/user_permissions/addPermission", {username, permission})
+        var res = await post("api/users/"+encodeURIComponent(username)+"/permissions", {permission})
         if (res.status == 200) {
             `<span class="permission" data-name="${permission}">${permission}<button class="delperm" onclick="delperm(this)">❌</button></span>`
             let permTag = document.createElement('span')
@@ -129,8 +129,8 @@
         h = button
         console.log(username)
         console.log(permission)
-        var res = await post("api/user_permissions/removePermission", {username, permission})
-        if (res.status == 200) {
+        var res = await post("api/users/"+encodeURIComponent(username)+"/permissions/"+encodeURIComponent(permission), {}, "DELETE")
+        if (res.status == 204) {
             button.parentElement.remove()
         }
     }
