@@ -14,4 +14,6 @@ def get_permissionid(permission_name):
         cur = con.cursor()
         cur.execute("SELECT id FROM permissions WHERE permission_name = ?", [permission_name])
         id = cur.fetchone()
-    return id[0]
+    if id:
+        return id[0]
+    else: return None

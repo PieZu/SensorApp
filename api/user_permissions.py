@@ -1,4 +1,4 @@
-from flask import Blueprint, request, session, render_template, flash, redirect
+from flask import Blueprint, request, session, render_template, flash, redirect, Response
 from database.config import DATABASE_PATH
 import sqlite3
 from user.auth import authenticate
@@ -49,16 +49,32 @@ def get_user_permissions(userID):
     return result
 
 from api.users import get_userid
-@authenticate("MANAGE_PERMISSIONS")
-def add_permission(username, permission_name):
-    userID = get_userid(username)
-    permissionID = get_permissionid(permission_name)
-    if not permissionID:
-        permissionID = insert_new_permission(permission_name)
-    link_user_permission(userID, permissionID)
+from api.permissions import get_permissionid, insert_new_permission
+import json
 
+api = Blueprint(
+    'userpermapi', __name__,
+    template_folder = 'templates',
+    url_prefix = '/api/user_permissions'
+)
+
+@api.route('/addPermission' , methods=["post"])
 @authenticate("MANAGE_PERMISSIONS")
-def remove_permission(username, permission_name):
-    userID = get_userid(username)
-    permissionID = get_permissionid(permission_name)
+def add_permission():
+    userID = get_userid(request.json['username'])
+    permissionID = get_permissionid(request.json['permission'])
+
+    if not permissionID:
+        permissionID = insert_new_permission(request.json['permission'])
+    
+    link_user_permission(userID, permissionID)
+    return Response(json.dumps(request.json), status=200, mimetype='application/json')
+
+@api.route('/removePermission' , methods=["post"])
+@authenticate("MANAGE_PERMISSIONS")
+def remove_permission():
+    userID = get_userid(request.json['username'])
+    permissionID = get_permissionid(request.json['permission'])
+
     delink_user_permission(userID, permissionID)
+    return Response(json.dumps(request.json), status=200, mimetype='application/json')

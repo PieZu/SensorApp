@@ -1,6 +1,7 @@
 <style>
     body {
         font-family: Helvetica, Calibri, Arial, sans-serif;
+        margin: 5vh 10%;
     }
     .user {
         background-color: #ddd;
@@ -14,17 +15,19 @@
     .permission_list {
         border: dashed 2px grey;
         border-radius: 10px;
-        padding: 10px;
+        padding: 3px;
         margin-top:0px;
     }
     .permission {
         background-color: #bbb;
-        padding: 5px;
+        padding: 2px 5px;
         border-radius: 5px;
+        margin: 3px 2px;
+        display: inline-block;
     }
 
     .adduser {
-        background-color: #e8e8e8;
+        background-color: #eaeaea;
         padding: 5px 0px;
         text-align: center;
     }
@@ -32,22 +35,104 @@
     .adduser:active { background-color: #aaa; }
 </style>
 
-{% for username, permissions in users %}
-<div class="user">
-    <h2>
-        <i>Username:</i>
-        {{username}}
-        <button class="deluser">🗑️</button>
-    </h2>
-    <h3><i>Permissions:</i></h3>
-    <div class="permission_list">
-        {% for permission in permissions %}
-            <span class="permission">{{permission}} <button class="delperm">❌</button></span>
-        {% endfor %}
-            <span class="permission addperm"><input placeholder="Add permission"><button>➕</button></span>
+<div id="userlist">
+    {% for username, permissions in users %}
+    <div class="user" id="user_{{username}}">
+        <h2>
+            <i>Username:</i>
+            {{username}}
+            <button class="deluser" onclick='removeUser( {{username|tojson}} )'>🗑️</button>
+        </h2>
+        <h3><i>Permissions:</i></h3>
+        <div class="permission_list">
+            <span>
+            {% for permission in permissions %}
+                <span class="permission" data-name="{{permission}}">{{permission}} <button class="delperm" onclick="delperm(this)">❌</button></span>
+            {% endfor %}</span>
+                <span class="permission addperm"><input placeholder="Add permission"><button onclick="addperm(this)">➕</button></span>
+        </div>
     </div>
+    {% endfor %}
 </div>
-{% endfor %}
 <div class="user adduser">
     <i><h3>➕ Add new user</h3></i>
 </div>
+
+<script>
+    async function post(url, data) {
+        res = await fetch(url, {
+            method: "POST", 
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+            q = res
+            console.log("Request complete! response:", res);
+            if (res.status==403) {
+                if (confirm("Error: insufficient permissions.\nLogin?")) window.location.href = "/login"
+            } else if (res.status==200) {
+                res.data = await res.json()
+            }
+            return res
+        
+    }
+    document.getElementsByClassName('adduser')[0].addEventListener('click', async e=>{
+        username = prompt("Username of new user:")
+        if (username == null) return
+        password = prompt("Password of new user:")
+        if (password != null){
+            var res = await post("/api/users/createUser", {username, password})
+            if (res.status == 200) {
+                document.getElementById('userlist').innerHTML += 
+                    `<div class="user" id="user_${username}"><h2><i>Username:</i> ${username}<button class="deluser" onclick='removeUser(${JSON.stringify(username)})'>🗑️</button></h2>
+                        <h3><i>Permissions:</i></h3><div class="permission_list">
+                            <span></span>
+                            <span class="permission addperm"><input placeholder="Add permission"><button>➕</button></span>
+                        </div>
+                    </div>`
+            }
+        }
+    })
+    async function removeUser(username) {
+        if (confirm("You are about to delete user '"+username+"', this action is not reversible.\nAre you sure?"))
+        var res = await post("api/users/deleteUser", {username})
+        if (res.status == 200) {
+            document.getElementById("user_"+res.data.username).remove()
+        }
+    }
+
+    async function addperm(button) {
+        let permission = button.parentElement.children[0].value.trim()
+        if (permission == "") return alert("Please type what permission to add")
+        let username = button.parentElement.parentElement.parentElement.id.slice(5)
+
+        h = button
+        console.log(username)
+        console.log(permission)
+
+        var res = await post("api/user_permissions/addPermission", {username, permission})
+        if (res.status == 200) {
+            `<span class="permission" data-name="${permission}">${permission}<button class="delperm" onclick="delperm(this)">❌</button></span>`
+            let permTag = document.createElement('span')
+            permTag.className = "permission"
+            permTag.dataset.name = permission
+            permTag.append(permission)
+            permTag.append(' ')
+            permTag.innerHTML += '<button class="delperm" onclick="delperm(this)">❌</button>'
+            button.parentElement.parentElement.children[0].append(permTag) 
+            button.parentElement.children[0].value = ""
+        }
+    }
+
+    async function delperm(button) {
+        let permission = button.parentElement.dataset.name
+        let username = button.parentElement.parentElement.parentElement.parentElement.id.slice(5)
+        h = button
+        console.log(username)
+        console.log(permission)
+        var res = await post("api/user_permissions/removePermission", {username, permission})
+        if (res.status == 200) {
+            button.parentElement.remove()
+        }
+    }
+
+</script>
