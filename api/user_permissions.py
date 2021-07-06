@@ -68,7 +68,16 @@ def view_userperms(username):
 @api.route('<username>/permissions' , methods=["POST"])
 @authenticate("MANAGE_PERMISSIONS")
 def add_permission(username):
-    userID = get_userid(username)
+    user_id = get_userid(username)
+    if user_id <= session['userid']:
+        return Response(json.dumps({
+            "error": "user_perm_creation_admin",
+            "message": "Insufficient permission to edit higher user's permission",
+            "detail": f"Cannot edit user {username}'s permissions as they have id {user_id}"+
+                      f" which is less than own id {session['userid']}."+
+                      "\nYou may only edit user accounts created after your own account."
+        }), status=403, mimetype='application/json')
+    
     permissionID = get_permissionid(request.json['permission'])
 
     if not permissionID:
@@ -78,7 +87,7 @@ def add_permission(username):
             "detail": "Cannot add permission '"+request.json['permission']+"' to user '"+username+"' as such a permission does not exist."
         }), status=404)
     
-    link_user_permission(userID, permissionID)
+    link_user_permission(user_id, permissionID)
     return Response(json.dumps(request.json), status=200, mimetype='application/json')
 
 
@@ -93,8 +102,17 @@ def view_userperm(username, permission):
 @api.route('<username>/permissions/<permission>' , methods=["DELETE"])
 @authenticate("MANAGE_PERMISSIONS")
 def remove_permission(username, permission):
-    userID = get_userid(username)
+    user_id = get_userid(username)
+    if user_id <= session['userid']:
+        return Response(json.dumps({
+            "error": "user_perm_deletion_admin",
+            "message": "Insufficient permission to edit higher user's permission",
+            "detail": f"Cannot edit user {username}'s permissions as they have id {user_id}"+
+                      f" which is less than own id {session['userid']}."+
+                      "\nYou may only edit user accounts created after your own account."
+        }), status=403, mimetype='application/json')
+    
     permissionID = get_permissionid(permission)
 
-    delink_user_permission(userID, permissionID)
+    delink_user_permission(user_id, permissionID)
     return Response(status=204)

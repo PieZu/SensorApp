@@ -27,7 +27,7 @@ def display():
             cur = con.cursor()
             
             if request.method == "POST":
-                cur.execute("INSERT INTO log (sensor, value) VALUES (?, ?)", (str(request.values.get('sensor')), str(request.values.get('value'))))
+                cur.execute("INSERT INTO log (sensor, value) VALUES (?, ?)", (request.values.get('sensor'), request.values.get('value')))
             return render_template('debug_insert.html')
 
 # temporary endpoint to examine table

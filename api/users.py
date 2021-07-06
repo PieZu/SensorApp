@@ -48,7 +48,7 @@ api = Blueprint(
 
 
 @api.route('/users/', methods=["GET"])
-@authenticate("CREATE_USERS", "DELETE_USERS", "MANAGE_PERMISSIONS", mode="any")
+@authenticate()
 def view_users():
     # api interfacable authenticated function for admins to add users
     users = get_all_users()
@@ -64,7 +64,7 @@ def create_user():
 
 
 @api.route('/users/<username>', methods=["GET"])
-@authenticate("CREATE_USERS", "DELETE_USERS", "MANAGE_PERMISSIONS", mode="any")
+@authenticate()
 def view_user(username):
     user_id = get_userid(username)
     return Response(json.dumps({"id":user_id, "username":username}), status=200, mimetype='application/json')
@@ -73,5 +73,13 @@ def view_user(username):
 @authenticate("DELETE_USERS")
 def destroy_user(username):
     user_id = get_userid(username)
+    if user_id <= session['userid']:
+        return Response(json.dumps({
+            "error": "user_delete_admin",
+            "message": "Insufficient permission to delete higher user",
+            "detail": f"Cannot delete user {username} as they have id {user_id}"+
+                      f" which is less than own id {session['userid']}."+
+                      "\nYou may only delete user accounts created after your own account."
+        }), status=403, mimetype='application/json')
     delete_user(user_id)
     return Response(status=204)
