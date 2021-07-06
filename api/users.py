@@ -58,7 +58,7 @@ def view_users():
 @authenticate("CREATE_USERS")
 def create_user():
     # api interfacable authenticated function for admins to add users
-    new_row = insert_new_user(request.json['username'], sha256_crypt.hash(str(request.json['username'])) )
+    new_row = insert_new_user(request.json['username'], sha256_crypt.hash(str(request.json['password'])) )
     inserted = get_user_info(new_row)
     return Response(json.dumps({'id':inserted[0], 'username':inserted[1]}), status=200, mimetype='application/json')
 

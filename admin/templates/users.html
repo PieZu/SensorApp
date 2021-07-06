@@ -33,6 +33,33 @@
     }
     .adduser:hover { background-color: #ccc; }
     .adduser:active { background-color: #aaa; }
+
+    /* only display editable settings */
+
+    .addperm, .delperm, .adduser, .deluser {
+        display: none
+    }
+    {% if canCreateUsers %}
+    .adduser {
+        display: block;
+    }
+    {% endif %}
+    {% if canRemoveUsers %}
+    #user_{{username}} ~ div .deluser {
+        display: block;
+    }
+    {% endif %}
+    {% if canManagePerms %}
+    #user_{{username}} ~ div div .addperm, 
+    #user_{{username}} ~ div div span .delperm {
+        display: inline-block;
+    }
+    {% endif %}
+
+    /* highlight self */
+    .user#user_{{username}} {
+        border: solid 3px yellow;
+    }
 </style>
 
 <datalist id="permissions">
@@ -99,7 +126,7 @@
                     `<div class="user" id="user_${username}"><h2><i>Username:</i> ${username}<button class="deluser" onclick='removeUser(${JSON.stringify(username)})'>🗑️</button></h2>
                         <h3><i>Permissions:</i></h3><div class="permission_list">
                             <span></span>
-                            <span class="permission addperm"><input placeholder="Add permission" list="permissions"><button>➕</button></span>
+                            <span class="permission addperm"><input placeholder="Add permission" list="permissions"><button onclick="addperm(this)">➕</button></span>
                         </div>
                     </div>`
             }
