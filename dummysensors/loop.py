@@ -19,7 +19,7 @@ class Sensor:
     
     def read(self):
         self.frequency = get_sensor_update_freq(self.id)
-        if (self.frequency > 10):
+        if (self.frequency > 100):
             Timer(self.frequency/100, self.read).start()
         else:
             self.backlog = []
@@ -28,7 +28,7 @@ class Sensor:
                 Timer(self.frequency/100*i, self.readFast).start()
             Timer(self.frequency/100*iterPerSec, self.read).start()
         
-        if self.backlog:
+        if self.backlog and len(self.backlog)>1:
             insert_logs(self.user, self.id, self.backlog)
             self.backlog = None
         else:

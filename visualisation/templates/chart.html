@@ -12,7 +12,7 @@ series = [
         name: '{{dataset[1]}}',
         x: [],
         y: ["0", "1"],
-        line: {color: '#7F7F7F'}
+        line: {color: 'hsl({{dataset[0]/datasets|length *360}}, 50%, 40%)'}
     },
 {% endfor %}
 ]
