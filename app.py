@@ -20,9 +20,4 @@ register_api(app)
 def hello():
     return render_template("home.html")
 
-@app.route("/sensors")
-@authenticate("MANAGE_SENSORS")
-def about():
-    return render_template("sensors.html")
-
 app.run(debug=True)

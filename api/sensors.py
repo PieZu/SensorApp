@@ -6,14 +6,14 @@ from user.auth import authenticate
 def get_all_sensors():
     with sqlite3.connect(DATABASE_PATH) as con:
         cur = con.cursor()
-        cur.execute("SELECT id, name FROM sensors")
+        cur.execute("SELECT id, name, description, datetime(date_installed, 'unixepoch', 'localtime') as date_installed FROM sensors")
         sensors = cur.fetchall()
     return sensors
 
 def get_sensor_info(id):
     with sqlite3.connect(DATABASE_PATH) as con:
         cur = con.cursor()
-        cur.execute("SELECT name, description, date_installed FROM sensors WHERE id = ?", id)
+        cur.execute("SELECT name, description, datetime(date_installed, 'unixepoch', 'localtime') as date_installed FROM sensors WHERE id = ?", id)
         name, description, date_installed = cur.fetchone()
     return name, description, date_installed
 

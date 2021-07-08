@@ -1,0 +1,288 @@
+<style>
+    body {
+        font-family: Helvetica, Calibri, Arial, sans-serif;
+        margin: 5vh 10%;
+    }
+    .sensor {
+        background-color: #ccc;
+        padding: 5px 10px;
+        margin-bottom: 20px;
+    }
+    .sensor .id_indicator {
+        font-style: oblique;
+        color: #339;
+        border: 1px solid #222;
+        border-radius: 5px;
+        padding: 0px 3px;
+        background-color: #ddd;
+    }
+    .id_indicator .hashtag {
+        color: #555;
+    }
+    .sensor h2 {
+        margin-top:10px;
+    }
+
+    .installdate {
+        float:right;
+        margin-top:-10px;
+    }
+    .editbutton { float:right; margin-top: 10px; }
+
+    .variable {
+        font-style: italic;
+        /* border: solid 1px black; */
+        border-radius: 2px;
+        padding: 0px 3px;
+        background-color: #fafafa;
+    }
+
+    input[type="number"] {
+        width:100px;
+        text-align:right;
+    }
+    input[type="text"] {
+        /* all:unset; */
+        width: 300px;
+    }
+    
+    textarea {
+        width:80%;
+        height: 20%;
+        font-family: Helvetica, Calibri, Arial, sans-serif;
+    }
+</style>
+
+<h1>Sensors:</h1>
+{% for id, name, description, timestamp, last_value, last_timestamp in sensors %}
+<div class="sensor">
+    <div>
+        <button class="editbutton" onclick="editMetadata(this)">✏️</button>
+        <h2>
+            <span class="id_indicator">
+                <span class="hashtag">#</span>{{id}}</span>    
+            <span class="name">{{name}}</span>
+        </h2>
+
+        <div class="installdate">
+            <i><small>
+                <b>Date installed:</b>
+                <span class="timestamp">{{timestamp}}</span>
+            </small></i>
+        </div>
+
+        <em>{{description}}</em>
+    </div>
+    <div hidden>
+        <button class="editbutton" onclick="saveMetadata(this)">💾</button>
+        <button class="editbutton" onclick="cancelMetadata(this)">❌</button>
+        <h2>
+            Sensor name: <input>
+        </h2>
+        <em>Description:<br>
+        <textarea></textarea></em>
+    </div>
+    
+    <hr>
+
+    <p>
+        <div>
+            Update frequency: <span class="text_{{id}}"></span>
+            <button onclick="editFreq(this)">✏️</button>
+
+            <br>
+            Last read: 
+            <span class="variable">{{last_value}}</span>
+            at 
+            <span class="variable">{{last_timestamp}}</span>
+            <button>🔄Refresh</button>            
+        </div>
+        <div hidden data-initial-frequency="29">
+            Update frequency:
+                <input type="range" id="{{id}}" step=0.5 min=-3.5 max=96 oninput="updatedRange(this)">
+                <input type="text" oninput="updatedText(this)" class="text_{{id}}">
+                <button onclick="saveFreq(this)">💾</button>
+                <button onclick="cancelFreq(this)">❌</button>
+            <br>
+                (<input type="number" id="num_{{id}}" class="ms" oninput="updatedMs(this)" step=10 min=10 max=3153600000> 
+                milliseconds)
+        </div>
+    </p>
+</div>
+{% endfor %}
+
+<script>
+
+    function updatedRange(elm) {
+        let val = exponentiate(elm.value)
+        val = Math.round(val*100)/100
+
+        val = humanTime(val)
+        elm.nextElementSibling.value = val
+
+        document.getElementById("num_"+elm.id).value = ms(val).toFixed(0)
+    }
+    function updatedMs(elm) {
+        elm.value = Number(elm.value).toTheNearest(10)
+        let val = elm.value/100
+        
+        let rangeElm = document.getElementById(elm.id.slice(4))
+        rangeElm.value = logarithmise(val)
+        rangeElm.nextElementSibling.value = fullHumanTime(val)
+    }
+    function updatedText(elm) {
+        let val = Math.round(ms(elm.value)/10)*10
+        if (val) {
+            let rangeElm = elm.previousElementSibling
+            rangeElm.value = logarithmise(val/100)
+            document.getElementById("num_"+rangeElm.id).value = val
+        }
+    }
+
+    exponentiate = rangeVal => 1.18847**(Number(rangeVal)+4)-0.995 // to actualVal
+    logarithmise = actualVal => (Math.log(actualVal+0.995) / Math.log(1.18847))-4 // to rangeVal. inverse of above function 
+
+    
+
+    function humanTime(n) {
+        var seconds = (n%60), minutes = ((n-seconds)%3600)/60, hours = (n-minutes*60-seconds)/3600
+
+        if (hours > 30) {
+            if (hours <= 7*24) {
+                hours %= 24
+                days = Math.floor(n / (60*60*24))
+                return `${days} day${days!=1?"s":""} and ${hours} hour${hours!=1?"s":""}`
+            } else {
+                return `${(n/(60*60*24)).toFixed(1)} days`
+            }            
+        }
+        var text = ""
+        if (!hours) {
+            if (!minutes)
+                if (seconds==1) return "1 second"
+                else return seconds.toPrecision(2).slice(0,3)+" seconds"
+            else seconds = Math.round(seconds)
+                 return `${minutes} minute${minutes!=1?'s':''} and ${seconds} second${seconds!=1?'s':''}`
+        } 
+        else {
+            if (minutes > 10) minutes = minutes.toTheNearest(5)
+            return `${hours} hour${hours!=1?'s':''} and ${minutes} minute${minutes!=1?'s':''}`
+        }
+    }
+    
+    Number.prototype.toTheNearest = function(n) {return Math.round(this/n)*n}
+
+    function fullHumanTime(n) { // unrounded
+        var seconds = (n%60).toFixed(1),
+            minutes = Math.floor(n/=60)%60,
+            hours = Math.floor(n/=60)%24,
+            days = Math.floor(n/24)
+        
+        if (days>0) return `${days} day${days!=1?'s':''} and ${hours}h${minutes}m${seconds}s`
+        if (hours>0) return `${hours}h ${minutes}m ${seconds}s`
+        if (minutes>0) return `${minutes}min ${seconds}sec`
+        return `${seconds} second${seconds!=1?'s':''}`
+    }
+    
+    // ms takes a string eg "2 minutes and 4.23 seconds" and outputs a number in ms eg 124.23*100
+    const multipliers = {"s":1,"m":60,"h":3600,"d":86400};
+    const keywords = Object.keys(multipliers)
+    ms = humanReadableTime => humanReadableTime.match(/[\d.]+|\w+/g).reduceRight(([count,key],item)=>!(key||keywords.includes(item[0]))?[count,key]:key?[count + item*multipliers[key], false]:[count,item[0]],[0,0])[0]*100
+
+
+    function setValuesFromMs(elm) {
+        let id = elm.id.slice(4)
+        let msval = elm.value
+        let text = humanTime(msval/100)
+        
+        // set the text ones
+        Array.from(document.getElementsByClassName('text_'+id)).forEach(elm=>{
+            elm.value=text
+            elm.innerText=text
+        })
+        // set the range slider
+        document.getElementById(id).value = logarithmise(msval/100)
+    }
+
+    function editFreq(elm) {
+        let id = elm.previousElementSibling.className.slice(5)
+        let viewDiv = elm.parentElement
+        let editDiv = viewDiv.nextElementSibling
+
+        viewDiv.hidden = true
+        editDiv.hidden = false
+        
+        editDiv.dataset['lastVal'] = editDiv.lastElementChild.value
+    }
+    function cancelFreq(elm) {
+        let editDiv = elm.parentElement
+        let msElm = editDiv.lastElementChild
+        msElm.value = editDiv.dataset['lastVal']
+        setValuesFromMs(msElm)
+
+        let viewDiv = editDiv.previousElementSibling
+        editDiv.hidden = true
+        viewDiv.hidden = false
+    }
+    function saveFreq(elm) {
+        let editDiv = elm.parentElement
+        let msElm = editDiv.lastElementChild
+        setValuesFromMs(msElm)
+
+        // post(msElm.value)
+        let viewDiv = editDiv.previousElementSibling
+        editDiv.hidden = true
+        viewDiv.hidden = false
+    }
+
+    // populate frequencies
+    Array.from(document.getElementsByClassName('ms')).forEach(elm=>{
+        elm.value = elm.parentElement.dataset['initialFrequency']
+        setValuesFromMs(elm)
+    })
+
+    function editMetadata(elm) {
+        a = elm
+        let viewMeta = elm.parentElement
+        let name = viewMeta.children[1].lastElementChild.innerText
+        let desc = viewMeta.children[3].innerText
+
+        let editMeta = viewMeta.nextElementSibling
+        let nameInp = editMeta.children[2].lastElementChild
+        let descInp = editMeta.children[3].lastElementChild
+
+        nameInp.value = name
+        descInp.value = desc
+
+        viewMeta.hidden = true
+        editMeta.hidden = false
+    }
+    function cancelMetadata(elm) {
+        let editMeta = elm.parentElement
+        let viewMeta = editMeta.previousElementSibling
+
+        viewMeta.hidden = false
+        editMeta.hidden = true
+    }
+    function saveMetadata(elm) {
+        let editMeta = elm.parentElement
+        let viewMeta = editMeta.previousElementSibling
+
+        let nameInp = editMeta.children[2].lastElementChild
+        let descInp = editMeta.children[3].lastElementChild
+
+        let name = nameInp.value
+        let desc = descInp.value
+
+        // post({name, desc})
+
+        let nameView = viewMeta.children[1].lastElementChild
+        let descView = viewMeta.children[3]
+
+        nameView.innerText = name
+        descView.innerText = desc
+
+        viewMeta.hidden = false
+        editMeta.hidden = true
+    }
+</script>
