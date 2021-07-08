@@ -6,6 +6,7 @@ from admin.panels import admin_bp
 import config
 from database.config import DATABASE_PATH
 from api.blueprints import register_api
+import dummysensors.loop
 
 app = Flask(__name__)
 app.secret_key = config.secret_key

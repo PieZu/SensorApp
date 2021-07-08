@@ -50,6 +50,6 @@ def exec(cmd):
             cur = con.cursor()
             
             cur.execute(cmd) # this is vulnerable to sql injections but this function is a debug and should be removed anyway
-            result = cur.fetchall()
+            result = con.commit()
             print(result)
             return render_template('debug_table.html')

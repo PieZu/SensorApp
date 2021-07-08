@@ -18,6 +18,13 @@ def get_sensor_info(id):
         name, description, date_installed, update_frequency = cur.fetchone()
     return name, description, date_installed, update_frequency
 
+def get_sensor_update_freq(id):
+    with sqlite3.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        cur.execute("SELECT update_frequency FROM sensors WHERE id = ?", (id,))
+        update_frequency = cur.fetchone()
+    return update_frequency[0]
+
 def update_sensor_metadata(id, name=None, description=None, date_installed=None, update_frequency=None):
     assignment_code = []
     values = []
