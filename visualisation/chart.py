@@ -7,7 +7,7 @@ visualisation_bp = Blueprint(
     'visualisation', __name__,
     template_folder = 'templates'
 )
-@visualisation_bp.route('/chart')
+@visualisation_bp.route('/chart/')
 def chart():
     formatted = []
     metadata = []

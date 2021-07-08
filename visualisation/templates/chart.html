@@ -1,4 +1,6 @@
-<body>
+{% extends 'layout.html' %}
+
+{% block body %}
 <div id="myChart" width="400" height="400"></div>
 <script src="https://cdn.plot.ly/plotly-2.1.0.min.js"></script>
 
@@ -62,4 +64,4 @@ var layout = {
 
 Plotly.newPlot('myChart', series, layout)
 </script>
-</body>
+{% endblock %}

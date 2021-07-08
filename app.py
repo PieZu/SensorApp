@@ -6,7 +6,7 @@ from admin.panels import admin_bp
 import config
 from database.config import DATABASE_PATH
 from api.blueprints import register_api
-import dummysensors.loop
+# import dummysensors.loop
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -22,3 +22,5 @@ def hello():
     return render_template("home.html")
 
 app.run(debug=True)
+
+# TODO: adjust log storage so that it doesnt round to nearest second and udnermine subsecond sensor reading frequencies

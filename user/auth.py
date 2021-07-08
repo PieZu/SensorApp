@@ -57,7 +57,7 @@ user_bp = Blueprint(
     'user', __name__,
     template_folder = 'templates'
 )
-@user_bp.route('/login', methods=["GET", "POST"])
+@user_bp.route('/login/', methods=["GET", "POST"])
 def login_page():
     if request.method == "POST":
         try:

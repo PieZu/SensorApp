@@ -11,7 +11,7 @@ admin_bp = Blueprint(
     template_folder = 'templates'
 )
 
-@admin_bp.route('/users')
+@admin_bp.route('/users/')
 @authenticate()
 def user_control():
     users = []
@@ -27,7 +27,7 @@ def user_control():
         username = get_user_info(session['userid'])[1]
     )
 
-@admin_bp.route('/sensors')
+@admin_bp.route('/sensors/')
 @authenticate("MANAGE_SENSORS")
 def sensor_control():
     sensors = list( map(list, get_all_sensors()) ) # get all sensors, as list of lists (not of tuples)
