@@ -8,20 +8,33 @@ series = [
     {
         type: "scatter",
         mode: "lines",
-        name: '{{labels[loop.index0]}}',
-        x: ["{{ dataset[0] | join('", "') | safe}}"],
-        y: [{{ dataset[1] | join(', ') }}],
+        "_id": '{{dataset[0]}}',
+        name: '{{dataset[1]}}',
+        x: [],
+        y: ["0", "1"],
         line: {color: '#7F7F7F'}
     },
 {% endfor %}
 ]
+
+series.forEach(dataset=>{
+    fetch('/api/logs/'+dataset._id+'/').then(response=>response.json()).then(list=>addData(dataset, list))
+})
+
+function addData(dataset, list) {
+    // transpose [[<date>, <value>], [<date>, <value>], ...] -> x:[<date>, <date>, ...], y: [<value>, <value>, ...]
+    for (let i=0; i<list.length; i++) {
+        dataset.x.push(list[i][0])
+        dataset.y.push(list[i][1])
+    }
+    Plotly.redraw('myChart')
+}
 
 var layout = {
     title: 'Time Series with Rangeslider',
     xaxis: {
         autorange: true,
         
-    range: ['2021-06-01', '2021-06-22'],
         rangeselector: {buttons: [
             {
                 count: 1,
@@ -37,7 +50,7 @@ var layout = {
             },
             {step: 'all'}
         ]},
-        rangeslider: {range: ['2015-02-17', '2017-02-16']},
+        rangeslider: {visible: true},
         type: 'date'
     },
     yaxis: {

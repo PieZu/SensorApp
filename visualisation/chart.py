@@ -11,8 +11,4 @@ visualisation_bp = Blueprint(
 def chart():
     formatted = []
     metadata = []
-    for (sensor_id, sensor_name, _,_,_) in get_all_sensors():
-        formatted.append(list(zip(*get_logs_from_sensor(sensor_id))))
-        metadata.append(sensor_name)
-    print(formatted)
-    return render_template('chart.html', datasets=formatted, labels=metadata)
+    return render_template('chart.html', datasets=get_all_sensors())
