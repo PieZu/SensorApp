@@ -48,16 +48,17 @@
     <nav>
       <div>
         <ul>
-          <li><a href="/chart/">Chart</a></li>
-          <li><a href="/sensors/">Sensors</a></li>
-          <li><a href="/users/">Users</a></li>
+          {%if 'userid' in session and session['userid']|has_permission("VIEW_LOGS")%}<li><a href="/chart/">Chart</a></li>{%endif%}
+          {%if 'userid' in session and session['userid']|has_permission("MANAGE_SENSORS")%}<li><a href="/sensors/">Sensors</a></li>{%endif%}
+          {%if 'userid' in session%}<li><a href="/users/">Users</a></li>{%endif%}
         </ul>
       </div> 
       <div class="user_fields">
         <ul>
-          <li>SYSTEM</li>
-          <li><em><a href="/login/">login</a></em></li>
-          <li><em><a href="/logout/">logout</a></em></li>
+          {%if 'userid' in session%}<li>{{session['userid']|get_username}}</li>
+          {%else%}<li><em>guest</em></li>{%endif%}
+          {%if not 'userid' in session%}<li><em><a href="/login/">login</a></em></li>{%endif%}
+          {%if 'userid' in session%}<li><em><a href="/logout/">logout</a></em></li>{%endif%}
         </ul>
       </div>
     </nav>

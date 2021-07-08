@@ -52,6 +52,23 @@ def user_has_permissions(userID, permissionIDs, mode='all'):
         if mode == 'all':
             return result == len(permissionIDs)
 
+# add 'filter' for jinja
+def has_perms(userID, permission_names, mode='all'):
+    if type(permission_names)==str: permission_names = [permission_names]
+    permissionIDs = [get_permissionid(permission_name) if type(permission_name)==str else permission_name for permission_name in permission_names]
+    with sqlite3.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        
+        # prepepare sql statement with variable amount of ?s
+        statement = "SELECT COUNT() FROM user_permissions WHERE user_id = ? AND permission_id IN ("+("?,"*len(permissionIDs))[:-1]+")"
+        cur.execute(statement, [userID]+permissionIDs)
+        result = cur.fetchone()[0]
+        
+        if mode == 'any':
+            return result > 0
+        if mode == 'all':
+            return result == len(permissionIDs)
+
 ## flask pages ##
 user_bp = Blueprint(
     'user', __name__,
@@ -68,6 +85,11 @@ def login_page():
         except InvalidLoginCredentials as error:
             flash(error)
     return render_template('login.html')
+
+@user_bp.route('/logout/', methods=["GET"])
+def logout_page():
+    del session['userid']
+    return redirect('/login/')
 
 ## functions ##
 def login(username, password):

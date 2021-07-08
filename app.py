@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from database.createDb import database_bp
-from user.auth import user_bp, authenticate
+from user.auth import user_bp, authenticate, has_perms
+from api.users import get_username
 from visualisation.chart import visualisation_bp
 from admin.panels import admin_bp
 import config
@@ -16,6 +17,9 @@ app.register_blueprint(user_bp)
 app.register_blueprint(visualisation_bp)
 app.register_blueprint(admin_bp)
 register_api(app)
+
+app.jinja_env.filters["has_permission"] = has_perms
+app.jinja_env.filters["get_username"] = get_username
 
 @app.route("/")
 def hello():

@@ -21,6 +21,14 @@ def get_userid(username):
         id = cur.fetchone()
     return id[0]
 
+def get_username(userid):
+    print(userid)
+    with sqlite3.connect(DATABASE_PATH) as con:
+        cur = con.cursor()
+        cur.execute("SELECT username FROM users WHERE id = ?", [userid])
+        name = cur.fetchone()
+    return name[0]
+
 def get_user_info(user_id):
     with sqlite3.connect(DATABASE_PATH) as con:
         cur = con.cursor()
