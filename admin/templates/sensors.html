@@ -54,7 +54,7 @@
 </style>
 
 <h1>Sensors:</h1>
-{% for id, name, description, timestamp, last_value, last_timestamp in sensors %}
+{% for id, name, description, timestamp, update_frequency, last_value, last_timestamp in sensors %}
 <div class="sensor">
     <div>
         <button class="editbutton" onclick="editMetadata(this)">✏️</button>
@@ -91,13 +91,15 @@
             <button onclick="editFreq(this)">✏️</button>
 
             <br>
-            Last read: 
-            <span class="variable">{{last_value}}</span>
-            at 
-            <span class="variable">{{last_timestamp}}</span>
-            <button>🔄Refresh</button>            
+            <div id="latest_{{id}}">
+                Last read: 
+                <span class="variable">{{last_value}}</span>
+                at 
+                <span class="variable">{{last_timestamp}}</span>
+                <button onclick="refresh(this)">🔄Refresh</button>  
+            </div>          
         </div>
-        <div hidden data-initial-frequency="29">
+        <div hidden data-initial-frequency="{{update_frequency}}">
             Update frequency:
                 <input type="range" id="{{id}}" step=0.5 min=-3.5 max=96 oninput="updatedRange(this)">
                 <input type="text" oninput="updatedText(this)" class="text_{{id}}">
@@ -229,7 +231,8 @@
         let msElm = editDiv.lastElementChild
         setValuesFromMs(msElm)
 
-        // post(msElm.value)
+        let id = elm.parentElement.firstElementChild.id
+        post("/api/sensors/"+id+"/", {update_frequency: msElm.value}, "PATCH")
         let viewDiv = editDiv.previousElementSibling
         editDiv.hidden = true
         viewDiv.hidden = false
@@ -272,17 +275,54 @@
         let descInp = editMeta.children[3].lastElementChild
 
         let name = nameInp.value
-        let desc = descInp.value
+        let description = descInp.value
 
-        // post({name, desc})
+        let id = viewMeta.children[1].firstElementChild.lastChild.textContent
+        post("/api/sensors/"+id+'/', {name, description}, "PATCH")
 
         let nameView = viewMeta.children[1].lastElementChild
         let descView = viewMeta.children[3]
 
         nameView.innerText = name
-        descView.innerText = desc
+        descView.innerText = description
 
         viewMeta.hidden = false
         editMeta.hidden = true
+    }
+
+
+    function refresh(elm) {
+        let div = elm.parentElement
+        let id = div.id.slice(7)
+
+        post('/api/logs/'+id+'/last/', false, "GET").then(({data})=>{
+            div.children[1].innerText = data[0]
+            div.children[0].innerText = data[1]
+        })
+    }
+
+    async function post(url, data, method="POST") {
+        return new Promise(async (resolve,reject)=>{
+            request = {method: method}
+            if (data) {
+                request.headers = {'Content-Type': 'application/json'}
+                request.body = JSON.stringify(data)
+            }
+
+            res = await fetch(url, request);
+            console.log("Request complete! response:", res);
+                
+            if (res.status==403 && confirm("Error: insufficient permissions.\nLogin?")) window.location.href = "/login"
+
+            if (res.status!==204) res.data = await res.json()
+
+            if (!res.ok) {
+                if (res.data && res.data.message) { 
+                    alert("Error: "+res.data.message+"\n"+(res.data.detail||""))
+                } else alert("An error occured")
+                reject()
+            }
+            resolve(res)
+        })
     }
 </script>

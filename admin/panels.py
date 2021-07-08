@@ -33,6 +33,7 @@ def sensor_control():
     sensors = list( map(list, get_all_sensors()) ) # get all sensors, as list of lists (not of tuples)
     print(sensors)
     for sensor in sensors:
+        print(sensor[0])
         last_read_timestamp, last_value = get_recent_reading(sensor[0])
         sensor.append(last_value)
         sensor.append(last_read_timestamp)

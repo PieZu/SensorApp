@@ -11,7 +11,7 @@ visualisation_bp = Blueprint(
 def chart():
     formatted = []
     metadata = []
-    for (sensor_id, sensor_name, _,_) in get_all_sensors():
+    for (sensor_id, sensor_name, _,_,_) in get_all_sensors():
         formatted.append(list(zip(*get_logs_from_sensor(sensor_id))))
         metadata.append(sensor_name)
     print(formatted)

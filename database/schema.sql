@@ -2,6 +2,7 @@ CREATE TABLE 'sensors' (
 'id' INTEGER DEFAULT NULL PRIMARY KEY AUTOINCREMENT,
 'name' TEXT DEFAULT 'New sensor',
 'description' TEXT DEFAULT NULL,
+'update_frequency' INTEGER DEFAULT 10, -- in deciseconds (*10ms)
 'date_installed' INTEGER DEFAULT (strftime('%s','now'))
 );
 
@@ -40,6 +41,12 @@ INSERT INTO 'permissions' ('permission_name') VALUES ('DELETE_USERS');
 INSERT INTO 'user_permissions' ('user_id', 'permission_id') VALUES (1, 3);
 INSERT INTO 'permissions' ('permission_name') VALUES ('MANAGE_SENSORS');
 INSERT INTO 'user_permissions' ('user_id', 'permission_id') VALUES (1, 4);
+INSERT INTO 'permissions' ('permission_name') VALUES ('VIEW_LOGS');
+INSERT INTO 'user_permissions' ('user_id', 'permission_id') VALUES (1, 5);
+INSERT INTO 'permissions' ('permission_name') VALUES ('ADD_LOGS');
+INSERT INTO 'user_permissions' ('user_id', 'permission_id') VALUES (1, 6);
+INSERT INTO 'permissions' ('permission_name') VALUES ('EDIT_LOGS');
+INSERT INTO 'user_permissions' ('user_id', 'permission_id') VALUES (1, 7);
 
-INSERT INTO 'sensors' ('name', 'description') VALUES ('temperature', 'temperature of solution in degrees celcius');
+INSERT INTO 'sensors' ('name', 'description') VALUES ('temperature', 'temperature of solution in degrees celsius');
 INSERT INTO 'sensors' ('name', 'description') VALUES ('pH', 'pH of solution. reads 0-14 with 1dp accuracy.');
