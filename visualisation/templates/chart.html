@@ -3,7 +3,7 @@
 {% block body %}
 <div id="myChart" width="400" height="400"></div>
 <script src="https://cdn.plot.ly/plotly-2.1.0.min.js"></script>
-
+<button onclick="location.href='/api/logs/dump'">dump logs</button>
 <script>
 series = [
 {% for dataset in datasets %}
