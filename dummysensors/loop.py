@@ -20,13 +20,19 @@ class Sensor:
     def read(self):
         self.frequency = get_sensor_update_freq(self.id)
         if (self.frequency > 100):
-            Timer(self.frequency/100, self.read).start()
+            x = Timer(self.frequency/100, self.read)
+            x.daemon = True
+            x.start()
         else:
             self.backlog = []
             iterPerSec = ceil(100/self.frequency)
             for i in range(iterPerSec):
-                Timer(self.frequency/100*i, self.readFast).start()
-            Timer(self.frequency/100*iterPerSec, self.read).start()
+                x = Timer(self.frequency/100*i, self.readFast)
+                x.daemon = True
+                x.start()
+            x = Timer(self.frequency/100*iterPerSec, self.read)
+            x.daemon = True
+            x.start()
         
         if self.backlog and len(self.backlog)>1:
             insert_logs(self.user, self.id, self.backlog)
