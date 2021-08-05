@@ -1,6 +1,8 @@
-from flask import Blueprint, request, session, render_template, flash, redirect
+from flask import Blueprint, request, session, render_template, flash, redirect, Response
 from database.config import DATABASE_PATH
 import sqlite3
+from user.auth import authenticate
+import json
 
 def get_all_permissions():
     with sqlite3.connect(DATABASE_PATH) as con:
@@ -24,3 +26,13 @@ def get_permissionid(permission_name):
     if id:
         return id[0]
     else: return None
+
+api = Blueprint(
+    'permissionsapi', __name__,
+    url_prefix = '/api/permissions'
+)
+
+@api.route('/', methods=["GET"])
+@authenticate("MANAGE_PERMISSIONS")
+def dump_permissions():
+    return Response(json.dumps(get_all_permissions()), status=200, mimetype='application/json')
