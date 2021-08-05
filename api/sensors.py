@@ -102,7 +102,7 @@ def view_sensor(id):
 
 
 @api.route('/<id>/', methods=["PATCH"])
-@authenticate()
+@authenticate("MANAGE_SENSORS")
 def api_update_sensor_metadata(id):
     data = {}
     data['name'] = data['description'] = data['date_installed'] = data['update_frequency'] = None
