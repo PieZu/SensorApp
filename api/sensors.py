@@ -28,6 +28,10 @@ def get_sensor_update_freq(id):
 def update_sensor_metadata(id, name=None, description=None, date_installed=None, update_frequency=None):
     assignment_code = []
     values = []
+    if update_frequency is not None:
+        update_frequency_num = int(update_frequency) # will throw ValueError if not a number
+        assignment_code.append("update_frequency = ?")
+        values.append(update_frequency)
     if name is not None: 
         assignment_code.append("name = ?")
         values.append(name)
@@ -37,9 +41,6 @@ def update_sensor_metadata(id, name=None, description=None, date_installed=None,
     if date_installed is not None: 
         assignment_code.append("date_installed = ?")
         values.append(date_installed)
-    if update_frequency is not None:
-        assignment_code.append("update_frequency = ?")
-        values.append(update_frequency)
     
     assignment_code = ", ".join(assignment_code)
 
@@ -47,9 +48,6 @@ def update_sensor_metadata(id, name=None, description=None, date_installed=None,
         cur = con.cursor()
         cur.execute("UPDATE sensors SET "+assignment_code+" WHERE id = ?", values+[id])
         con.commit()
-    
-    if update_frequency is not None:
-        update_update_frequency(id, update_frequency)
     
     return True
 
@@ -114,12 +112,16 @@ def api_update_sensor_metadata(id):
                 "error": "sensor_updatemeta_keyerror",
                 "message": "Unknown property",
                 "detail": f"Cannot update sensor for '{key}'='{value}'" +
-                          f" as '{key}' is an known settable property."
-            }), status=403, mimetype='application/json')
+                          f" as '{key}' is not a known settable property."
+            }), status=400, mimetype='application/json')
             
-    update_sensor_metadata(id, name=data['name'], description=data['description'], date_installed=data['date_installed'], update_frequency=data['update_frequency'])
+    try:
+        update_sensor_metadata(id, name=data['name'], description=data['description'], date_installed=data['date_installed'], update_frequency=data['update_frequency'])
+    except ValueError:
+        return Response(json.dumps({
+            "error": "sensor_updatemeta_freqNaN",
+            "message": "Invalid update frequency",
+            "detail": f"Cannot set update_frequency of sensor to {data['update_frequency']}" +
+                        " as this is in not a valid integer."
+        }), status=403, mimetype='application/json')
     return view_sensor(id)
-
-def update_update_frequency(sensor_id, new_frequency):
-    # code to tell sensor to update at new rate
-    pass

@@ -80,7 +80,6 @@
         </h2>
         <h3><i>Permissions:</i></h3>
         <div class="permission_list">
-            <span>
             {% for permission in permissions %}
                 <span class="permission" data-name="{{permission}}">{{permission}} <button class="delperm" onclick="delperm(this)">❌</button></span>
             {% endfor %}</span>
@@ -105,6 +104,7 @@
             q = res
             console.log("Request complete! response:", res);
             
+            // TODO: dont display this if its a different error :3 
             if (res.status==403 && confirm("Error: insufficient permissions.\nLogin?")) window.location.href = "/login"
 
             if (res.status!==204) res.data = await res.json()
@@ -117,6 +117,11 @@
             return res
         
     }
+    function escapeHtml(txt) {
+        return txt.replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
     document.getElementsByClassName('adduser')[0].addEventListener('click', async e=>{
         username = prompt("Username of new user:")
         if (username == null) return
@@ -125,7 +130,7 @@
             var res = await post("/api/users/", {username, password})
             if (res.status == 200) {
                 document.getElementById('userlist').innerHTML += 
-                    `<div class="user" id="user_${username}"><h2><i>Username:</i> ${username}<button class="deluser" onclick='removeUser(${JSON.stringify(username)})'>🗑️</button></h2>
+                    `<div class="user" id="user_${escapeHtml(username)}"><h2><i>Username:</i> ${escapeHtml(username)}<button class="deluser" onclick='removeUser("${escapeHtml(username.replace(/"/g,'\\"'))}")'>🗑️</button></h2>
                         <h3><i>Permissions:</i></h3><div class="permission_list">
                             <span></span>
                             <span class="permission addperm"><input placeholder="Add permission" list="permissions"><button onclick="addperm(this)">➕</button></span>

@@ -39,7 +39,7 @@ def get_user_info(user_id):
 def get_all_users():
     with sqlite3.connect(DATABASE_PATH) as con:
         cur = con.cursor()
-        cur.execute("SELECT id, username FROM users")
+        cur.execute("SELECT id, username FROM users ORDER BY id")
         results = cur.fetchall()
     return results
 
@@ -66,6 +66,18 @@ def view_users():
 @authenticate("CREATE_USERS")
 def create_user():
     # api interfacable authenticated function for admins to add users
+    if request.json['username'] == '':
+        return Response(json.dumps({
+            "error": "user_create_blank",
+            "message": "Enter a username",
+            "detail": "Cannot create user with blank username."
+        }), status=400, mimetype='application/json')
+    if '/' in request.json['username']:
+        return Response(json.dumps({
+            "error": "user_create_invalid",
+            "message": "Invalid username",
+            "detail": "Username cannot contain slashes."
+        }), status=400, mimetype='application/json')
     new_row = insert_new_user(request.json['username'], sha256_crypt.hash(str(request.json['password'])) )
     inserted = get_user_info(new_row)
     return Response(json.dumps({'id':inserted[0], 'username':inserted[1]}), status=200, mimetype='application/json')
@@ -74,7 +86,14 @@ def create_user():
 @api.route('/users/<username>', methods=["GET"])
 @authenticate()
 def view_user(username):
-    user_id = get_userid(username)
+    try:
+        user_id = get_userid(username)
+    except TypeError:
+        return Response(json.dumps({
+                "error": "user_getid_unknownusername",
+                "message": "Unknown username",
+                "detail": f"Could not locate user with username '{username}', perhaps their account has been deleted, or perhaps it never existed, perhaps it was all an illusion."
+            }), status=400, mimetype='application/json')
     return Response(json.dumps({"id":user_id, "username":username}), status=200, mimetype='application/json')
 
 @api.route('/users/<username>', methods=["DELETE"])
