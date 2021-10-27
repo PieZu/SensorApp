@@ -87,7 +87,14 @@ def add_permission(username):
             "detail": "Cannot add permission '"+request.json['permission']+"' to user '"+username+"' as such a permission does not exist."
         }), status=404)
     
-    link_user_permission(user_id, permissionID)
+    try:
+        link_user_permission(user_id, permissionID)
+    except sqlite3.IntegrityError:
+        return Response(json.dumps({
+            "error": "user_perm_creation_dupe",
+            "message": "Permission already exists",
+            "detail": "Cannot add permission '"+request.json['permission']+"' to user '"+username+"' as they already have that permission."
+        }), status=400)
     return Response(json.dumps(request.json), status=200, mimetype='application/json')
 
 
