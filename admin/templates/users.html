@@ -80,7 +80,7 @@
         </h2>
         <h3><i>Permissions:</i></h3>
         <div class="permission_list">
-            {% for permission in permissions %}
+            <span>{% for permission in permissions %}
                 <span class="permission" data-name="{{permission}}">{{permission}} <button class="delperm" onclick="delperm(this)">❌</button></span>
             {% endfor %}</span>
                 <span class="permission addperm"><input placeholder="Add permission" list="permissions">

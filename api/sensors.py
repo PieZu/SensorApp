@@ -123,5 +123,5 @@ def api_update_sensor_metadata(id):
             "message": "Invalid update frequency",
             "detail": f"Cannot set update_frequency of sensor to {data['update_frequency']}" +
                         " as this is in not a valid integer."
-        }), status=403, mimetype='application/json')
+        }), status=400, mimetype='application/json')
     return view_sensor(id)
