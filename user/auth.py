@@ -1,4 +1,4 @@
-from flask import Blueprint, request, session, render_template, flash, redirect
+from flask import Blueprint, request, session, render_template, flash, redirect, Response, json
 from functools import wraps
 from database.config import DATABASE_PATH
 import sqlite3
@@ -78,12 +78,16 @@ user_bp = Blueprint(
 def login_page():
     if request.method == "POST":
         try:
-            id = login(request.values.get('username'), request.values.get('password'))
+            id = login(request.json['username'], request.json['password'])
             session['userid'] = id
-            
-            redirect('/')
-        except InvalidLoginCredentials as error:
-            flash(error)
+
+            return '{"success": true}', 200
+        except InvalidLoginCredentials:
+            return Response(json.dumps({
+                "error": "login_invalid_credentials",
+                "message": "Invalid login credentials",
+                "detail": "The supplied username and password is not a valid login."
+            }), status=403)
     return render_template('login.html')
 
 @user_bp.route('/logout/', methods=["GET"])

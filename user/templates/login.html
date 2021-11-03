@@ -13,9 +13,39 @@
 {% endwith %}
 
 <h1> Sign in to your account </h1>
-<form method="post">
+<form method="post" id="login">
     <input name="username">
-    <input name="password">
+    <input name="password" type="password">
     <input type="submit" value="Login">
 </form>
+
+<script>
+  var form = document.getElementById('login')
+  form.addEventListener('submit', e=>{
+    e.preventDefault()
+    fetch("/login/", {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          method: "POST",
+          body: JSON.stringify({username: form.username.value, password: form.password.value})
+      })
+      .then(res=>{
+        if (res.ok) {
+          res.json().then(data=>{
+            if (data.success) {
+              document.location.pathname = "/users"
+            }
+          })
+        } else {
+          res.json().then(data=>{
+            console.log(data)
+            alert(data.message+"\n"+data.detail)
+          })
+        }
+      })
+    })
+
+</script>
 {% endblock %}
