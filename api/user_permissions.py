@@ -2,6 +2,7 @@ from flask import Blueprint, request, session, render_template, flash, redirect,
 from database.config import DATABASE_PATH
 import sqlite3
 from user.auth import authenticate
+from api.users import UnknownUsernameError
 
 def link_user_permission(userID, permissionID):
      with sqlite3.connect(DATABASE_PATH) as con:
@@ -68,15 +69,18 @@ def view_userperms(username):
 @api.route('<username>/permissions' , methods=["POST"])
 @authenticate("MANAGE_PERMISSIONS")
 def add_permission(username):
-    user_id = get_userid(username)
-    if user_id <= session['userid']:
-        return Response(json.dumps({
-            "error": "user_perm_creation_admin",
-            "message": "Insufficient permission to edit higher user's permission",
-            "detail": f"Cannot edit user {username}'s permissions as they have id {user_id}"+
-                      f" which is less than own id {session['userid']}."+
-                      "\nYou may only edit user accounts created after your own account."
-        }), status=403, mimetype='application/json')
+    try:
+        user_id = get_userid(username)
+        if user_id <= session['userid']:
+            return Response(json.dumps({
+                "error": "user_perm_creation_admin",
+                "message": "Insufficient permission to edit higher user's permission",
+                "detail": f"Cannot edit user {username}'s permissions as they have id {user_id}"+
+                        f" which is less than own id {session['userid']}."+
+                        "\nYou may only edit user accounts created after your own account."
+            }), status=403, mimetype='application/json')
+    except UnknownUsernameError as error:
+        return error.response
     
     permissionID = get_permissionid(request.json['permission'])
 
@@ -109,15 +113,18 @@ def view_userperm(username, permission):
 @api.route('<username>/permissions/<permission>' , methods=["DELETE"])
 @authenticate("MANAGE_PERMISSIONS")
 def remove_permission(username, permission):
-    user_id = get_userid(username)
-    if user_id <= session['userid']:
-        return Response(json.dumps({
-            "error": "user_perm_deletion_admin",
-            "message": "Insufficient permission to edit higher user's permission",
-            "detail": f"Cannot edit user {username}'s permissions as they have id {user_id}"+
-                      f" which is less than own id {session['userid']}."+
-                      "\nYou may only edit user accounts created after your own account."
-        }), status=403, mimetype='application/json')
+    try:
+        user_id = get_userid(username)
+        if user_id <= session['userid']:
+            return Response(json.dumps({
+                "error": "user_perm_deletion_admin",
+                "message": "Insufficient permission to edit higher user's permission",
+                "detail": f"Cannot edit user {username}'s permissions as they have id {user_id}"+
+                        f" which is less than own id {session['userid']}."+
+                        "\nYou may only edit user accounts created after your own account."
+            }), status=403, mimetype='application/json')
+    except UnknownUsernameError as error:
+        return error.response
     
     permissionID = get_permissionid(permission)
 

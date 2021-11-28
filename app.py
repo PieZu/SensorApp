@@ -25,6 +25,10 @@ app.jinja_env.filters["get_username"] = get_username
 def hello():
     return render_template("home.html")
 
+@app.route("/api")
+def api_docs():
+    return render_template("")
+
 from time import time
 from api.logs import insert_logs
 from dummysensors.fetch import ph, temp

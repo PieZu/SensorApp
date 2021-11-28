@@ -24,7 +24,7 @@ def authenticate(*permissions, mode='all'):
             except KeyError:
                 print(f'Guest attempted to access "{func.__name__}"')
                 flash('You must be logged in to access this page')
-                return redirect('/login'), 403
+                return redirect('/login'), 401
 
             permission_ids = [get_permissionid(permission_name) if type(permission_name)==str else permission_name for permission_name in permissions]
            
