@@ -25,36 +25,4 @@ app.jinja_env.filters["get_username"] = get_username
 def hello():
     return render_template("home.html")
 
-@app.route("/api")
-def api_docs():
-    return render_template("")
-
-from time import time
-from api.logs import insert_logs
-from dummysensors.fetch import ph, temp
-import math
-import sqlite3
-@app.route('/fillData/<count>')
-def fill(count):
-    now = math.floor(time())
-    loops = int(count)
-    a = [0]*loops
-    b = [0]*loops
-    for i in range(loops):
-        cT = now-i
-        a[i] = [cT, temp(cT)]
-        b[i] = [cT, ph(cT)]
-    insert_logs(1, 1, a)
-    insert_logs(1, 2, b)
-    return f'added {loops} points of data :D'
-@app.route('/clearLogs')
-def deleteAll():
-    with sqlite3.connect(DATABASE_PATH) as con:
-        cur = con.cursor()
-        cur.execute("DELETE FROM log")
-        con.commit()
-    return "deleted __everything__ :oo"
-
 app.run(debug=True)
-
-# TODO: adjust log storage so that it doesnt round to nearest second and udnermine subsecond sensor reading frequencies
